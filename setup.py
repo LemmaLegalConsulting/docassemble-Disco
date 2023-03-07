@@ -44,13 +44,13 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
     return out
 
 setup(name='docassemble.Disco',
-      version='0.0.1',
+      version='0.0.2',
       description=('A docassemble extension.'),
-      long_description='# docassemble.Disco\n\nA docassemble extension.\n\n## Author\n\nmbonardi@su.suffolk.edu\n\n',
+      long_description='# docassemble.Disco\r\n\r\nA docassemble extension.\r\n\r\n## Author\r\n\r\nmbonardi@su.suffolk.edu\r\n\r\n',
       long_description_content_type='text/markdown',
       author='',
       author_email='mbonardi@su.suffolk.edu',
-      license='The MIT License (MIT)',
+      license='',
       url='https://docassemble.org',
       packages=find_packages(),
       namespace_packages=['docassemble'],

@@ -14,8 +14,8 @@ from collections import OrderedDict
 
 __all__ = [
     "DataLoader",
-    "Pet",
-    "PetsDict",
+    "NCR",
+    "NCRDict",
     "unique_values",
     "rows_with_label",
 ]
@@ -49,7 +49,7 @@ class BaseDataLoader(DAObject):
         filter_column=None,
     ) -> Union[pd.DataFrame, pd.Series]:
         """
-        Return the raw dataframe filtered to the specified column(s) and matching the specified pet(s).
+        Return the raw dataframe filtered to the specified column(s) and matching the specified NCR(s).
         """
         df = self._load_data()
         if allowed_types and filter_column:
@@ -124,30 +124,31 @@ class DataLoader(BaseDataLoader):
         )  # Our XLSX file has a column 'ID' with a unique identifier for each row
         return df
       
-class Pet(DAObject):
+class NCR(DAObject):
     pass
       
-class PetsDict(DADict):
+class NCRDict(DADict):
     def init(self, *pargs, **kwargs):
         super().init(*pargs, **kwargs)
-        self.object_type = Pet
+        self.object_type = NCR
         self.complete_attribute = "complete"
 
     def as_merged_list(self):
-        """Merge pet details with original DF row"""
+        """Merge ncr details with original DF row"""
         results = pd.concat([self[c].df for c in self])
 
     def as_list(self, language:str="en"):
         flattened = DAList(auto_gather=False, gathered=True)
-        for species in self.elements:
-            for index, row in self[species].df.iterrows():
-                pet = self[species].details[index]
-                pet.index = index
-                pet.blurb = row.get("Blurb")
-                pet.breed = row.get("Breed")
-                pet.label = row.get("Label")
-                pet.row = row
-                flattened.append(pet)
+        for scenario in self.elements:
+            for index, row in self[scenario].df.iterrows():
+                ncr = self[scenario].details[index]
+                ncr.index = index
+                ncr.blurb = row.get("Blurb")
+                ncr.method = row.get("Method")
+                ncr.category = row.get("Category")
+                ncr.label = row.get("Label")
+                ncr.row = row
+                flattened.append(ncr)
         return flattened
 
 
