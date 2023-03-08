@@ -4,7 +4,8 @@ include:
 ---
 objects:
   - dataloader: DataLoader.using(filename="disco_blurbs.xlsx")
-  - ncr: NCRDict.using(object_type=DAObject, there_are_any = True, complete_attribute='complete')
+  - ncr: NCRDict.using(object_type=DAObject, there_are_any = True)
+  - methods: DADict
 ---
 modules:
   - .load_data
@@ -12,26 +13,28 @@ modules:
 mandatory: True
 id: interview order
 code: |
+  # gather all methods propounded
   methods
+  # for each method, gather all noncompliant responses (ncr)
   for method in methods:
-    ncr.gather()
+    
+    #collect all ncrs
+    for x in ncr:
+    
+      # for each nrc, show catergory/label dropdown (CLP mimic)
+      select_fields
 
   download
 ---
-generic_object: DAObject
-code: |
-  x[i].category
-  x[i].complete = True
----
 id: discovery methods
 question: |
-  What discovery method(s) did you propound?
+  Discovery method(s) propounded
 fields:
   - no label: methods
     datatype: checkboxes
     code: |
       unique_values(dataloader, search_column="Method")
-    none of the above: False
+    none of the above: false
 ---
 id: add noncompliant response
 question: |
@@ -40,9 +43,10 @@ yesno: ncr.there_is_another
 ---
 id: noncompliant response number
 question: |
-  Noncompliant response number for ${ method }
+  Noncompliant response number(s) for ${ method }
 fields: 
-  - no label: ncr.new_item_name
+  - no label: ncr
+    datatype: checkboxes
     choices: 
       - 1
       - 2 
@@ -54,47 +58,23 @@ fields:
       - 8
       - 9
       - 10
+    none of the above: false
 ---
 id: explain noncompliant responses
 question: |
-  How was the response noncompliant?
+  How was Response ${ x } noncompliant?
 fields:
-  - no label: x[i].category
-    datatype: checkboxes
-    code: |
-      rows_with_label(dataloader, display_column="Category", filter_column="Method", filter_value=methods)
-    none of the above: False
----
-id: explain noncompliant responses
-question: |
-  How was Response ${ i } noncompliant?
-fields:
-  - no label: ncr[i].label
-    datatype: checkboxes
-    code: |
-      rows_with_label(dataloader, display_column="Label", filter_column="Method", filter_value=methods, filter_column2="Category", filter_value2=ncr[i].category)
-    none of the above: False
----
-#id: any noncompliant responses
-#question: |
-#  You said you propounded: ${ methods.true_values() }. 
-#  
-#  Did the responding party serve noncompliant responses?
-#fields:
-#  - no label: ncr.there_are_any
-#    datatype: yesnoradio
+  - no label: select_fields
+#script: |
+#  <script type="text/javascript">
+#     $(document).ready(function() {
+#          % for col_name in separate_columns:
+#           $("#${ base64.b64encode(str('selected_vals["' + col_name + '"]').encode()).decode().replace('=', '') } ").multiselect({enableCaseInsensitiveFiltering: true, inheritClass: true, enableClickableOptGroups: true, enableCollapsibleOptGroups: true, collapseOptGroupsByDefault: true});
+#          % endfor
+#          $("#${ base64.b64encode('combined_selected_vals'.encode()).decode().replace('=', '') } ").multiselect({enableCaseInsensitiveFiltering: true, inheritClass: true, enableClickableOptGroups: true, enableCollapsibleOptGroups: true, collapseOptGroupsByDefault: true});
+#      });
+#  </script>
 #---
-#id: Goodbye
-#event: goodbye
-#question: |
-#  Goodbye
-#---
-#id: explain noncompliant responses
-#question: |
-#  How was Response ${ i } noncompliant?
-#fields:
-#  - no label: select_fields
-#--
 #code: |
 #  separate_column_info = [
 #    ('Insufficient Inquiry', 'Insufficient Inquiry', '', False),
@@ -137,49 +117,33 @@ fields:
 #    ('F - Claimed inability to admit or deny without reasonable inquiry', 'Claimed inability to admit or deny without reasonable inquiry', '', True),
 #    ('F - Untailored "ambiguous" objection without elaboration', 'Untailored "ambiguous" objection without elaboration', '', True)
 #  ]
-#--
-#ode: |
-# select_fields = []
-# # The big, combined one
-# combined_selected_vals = DADict('combined_selected_vals', gathered=True)
-# all_combined_vals = []
-# for col, label, help_link, is_top_level in combined_column_info:
-#   all_vals = [{'value': f'{col};;;{item}', 'label': item, 'group': label} for item in multi_index.get_values(col)]
-#   all_combined_vals.extend(all_vals)
-# 
-# select_fields.append(
-#       {'label': 'Noncompliant Responses', 'field': f'combined_selected_vals', 
-#        'datatype': 'multiselect',
-#        'required': False, 
-#        'code': 'all_combined_vals',
-#        'help': ""})
-# # Then the GIC Industry and Practice area
-# vals_for_columns = {}
-# selected_vals = {}
-# for col, label, tooltip, is_top_level in separate_column_info:
-#   vals_for_columns[col] = multi_index.get_values(col)
-#   field_info = {'label': label, 'field': f'selected_vals["{col}"]', 
-#                 'datatype': 'multiselect', 
-#                 'required': False, 'code': f'vals_for_columns["{col}"]'}
-#   if tooltip:
-#     field_info['help'] = tooltip 
-#   select_fields.append(field_info)
----
-#id: characteristics
-#question: |
-#  What characteristics does ${ i } have?
-#fields:
-#  - no label: pet[i].label_ids
-#    datatype: checkboxes
-#    code: |
-#      rows_with_label(dataloader, display_column="Label", filter_column="Species", filter_value=pet[i].species, filter_column2="Breed", filter_value2=pet[i].breed)
-#    none of the above: False
 #---
 #code: |
-#  pet[i].selected_labels_df = dataloader.load_rows(
-#    int(val)
-#    for val in pet[i].label_ids.true_values()
-#  )
+#  select_fields = []
+#  # The big, combined one
+#  combined_selected_vals = DADict('combined_selected_vals', gathered=True)
+#  all_combined_vals = []
+#  for col, label, help_link, is_top_level in combined_column_info:
+#    all_vals = [{'value': f'{col};;;{item}', 'label': item, 'group': label} for item in multi_index.get_values(col)]
+#    all_combined_vals.extend(all_vals)
+#  
+#  select_fields.append(
+#        {'label': 'Noncompliant Responses', 'field': f'combined_selected_vals', 
+#         'datatype': 'multiselect',
+#         'required': False, 
+#         'code': 'all_combined_vals',
+#         'help': ""})
+#  # Then the GIC Industry and Practice area
+#  vals_for_columns = {}
+#  selected_vals = {}
+#  for col, label, tooltip, is_top_level in separate_column_info:
+#    vals_for_columns[col] = multi_index.get_values(col)
+#    field_info = {'label': label, 'field': f'selected_vals["{col}"]', 
+#                  'datatype': 'multiselect', 
+#                  'required': False, 'code': f'vals_for_columns["{col}"]'}
+#    if tooltip:
+#      field_info['help'] = tooltip 
+#    select_fields.append(field_info)
 ---
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[disco_attachment], filename="disco.docx", title="All forms to download for your records", enabled=True)
