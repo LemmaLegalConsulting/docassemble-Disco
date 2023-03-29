@@ -151,6 +151,8 @@ class NCRDict(DADict):
                 flattened.append(ncr)
         return flattened
 
+    ## TODO could make this work more generalized by passing a dictionary
+    ## https://stackoverflow.com/questions/34157811/filter-a-pandas-dataframe-using-values-from-a-dict
 
 def filter_df(
     dataloader: DataLoader,
@@ -160,8 +162,7 @@ def filter_df(
     filter_value2: Optional[str]=None,
 ) -> pd.DataFrame:
     df = dataloader._load_data()
-    ## TODO could make this work more generalized by passing a dictionary
-    ## https://stackoverflow.com/questions/34157811/filter-a-pandas-dataframe-using-values-from-a-dict
+
     if filter_column and filter_column2:
         return df[(df[filter_column] == filter_value) & (df[filter_column2] == filter_value2)]
     elif filter_column and filter_value:

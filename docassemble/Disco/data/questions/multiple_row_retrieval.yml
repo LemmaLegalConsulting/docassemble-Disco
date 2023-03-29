@@ -1,11 +1,16 @@
 ---
 include:
   - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALToolbox:multiselect.yml
 ---
 objects:
   - dataloader: DataLoader.using(filename="disco_blurbs.xlsx")
   - ncr: NCRDict.using(object_type=DAObject, there_are_any = True)
   - methods: DADict
+  - results: DADict
+---
+imports:
+  - base64
 ---
 modules:
   - .load_data
@@ -60,90 +65,46 @@ fields:
       - 10
     none of the above: false
 ---
+code: |
+  results = unique_values(dataloader, search_column="Label", filter_column="Method", filter_value=method)
+---
 id: explain noncompliant responses
 question: |
   How was Response ${ x } noncompliant?
 fields:
   - no label: select_fields
-#script: |
-#  <script type="text/javascript">
-#     $(document).ready(function() {
-#          % for col_name in separate_columns:
-#           $("#${ base64.b64encode(str('selected_vals["' + col_name + '"]').encode()).decode().replace('=', '') } ").multiselect({enableCaseInsensitiveFiltering: true, inheritClass: true, enableClickableOptGroups: true, enableCollapsibleOptGroups: true, collapseOptGroupsByDefault: true});
-#          % endfor
-#          $("#${ base64.b64encode('combined_selected_vals'.encode()).decode().replace('=', '') } ").multiselect({enableCaseInsensitiveFiltering: true, inheritClass: true, enableClickableOptGroups: true, enableCollapsibleOptGroups: true, collapseOptGroupsByDefault: true});
-#      });
-#  </script>
-#---
-#code: |
-#  separate_column_info = [
-#    ('Insufficient Inquiry', 'Insufficient Inquiry', '', False),
-#    ('Insufficient Verification', 'Insufficient Verification', '', False),
-#    ('Invalid Form of Response', 'Invalid Form of Response', '', False),
-#    ('Invalid/Improper Objection', 'Invalid/Improper Objection', '', False),
-#    ('Incomplete Response', 'Incomplete Response', '', False),
-#  ]
-#  combined_column_info = [
-#    ('F - Insufficient effort to obtain info', 'Insufficient effort to obtain info', '', True),
-#    ('F - Lack of inquiry with agents / sources under responder’s control', 'Lack of inquiry with agents / sources under responder’s control', '', True),
-#    ('F - Excludes counsel’s knowledge of nonprivileged facts', 'Excludes counsel’s knowledge of nonprivileged facts', '', True),
-#    ('F - Entity verifier hasn’t established foundational knowledge / sufficient inquiry', 'Entity verifier hasn’t established foundational knowledge / sufficient inquiry', '', True),
-#    ('F - Not one of four valid forms of response', 'Not one of four valid forms of response', '', True),
-#    ('F - Boilerplate Objections', 'Boilerplate Objections', '', True),
-#    ('F - Bulk responses', 'Bulk responses', '', True),
-#    ('F - Generally evasive, cagey response', 'Generally evasive, cagey response', '', True),
-#    ('F - Claimed lack of personal knowledge', 'Claimed lack of personal knowledge', '', True),
-#    ('F - Failure to state specific ground for objection', 'Failure to state specific ground for objection', '', True),
-#    ('F - Claimed irrelevance or overbreadth', 'Claimed irrelevance or overbreadth', '', True),
-#    ('F - Improper 'hearsay" objection', 'Improper 'hearsay" objection', '', True),
-#    ('F - Improper "legal contention" or "opinion" objection', 'Improper "legal contention" or "opinion" objection', '', True),
-#    ('F - Objection that answer was already given in other discovery', 'Objection that answer was already given in other discovery', '', True),
-#    ('F - Verified based on "information and belief"', 'Verified based on "information and belief"', '', True),
-#    ('F - Claimed inability to respond', 'Claimed inability to respond', '', True),
-#    ('F - Ambiguous', 'Ambiguous', '', True),
-#    ('F - Known to propounder', 'Known to propounder', '', True),
-#    ('F - Burdensome', 'Burdensome', '', True),
-#    ('F - Objection calls for opinion or conclusion', 'Objection calls for opinion or conclusion', '', True),
-#    ('F - Objection – "fishing expedition"', 'Objection – "fishing expedition"', '', True),
-#    ('F - Not one of three valid response forms', 'Not one of three valid response forms', '', True),
-#    ('F - Only partially objected to', 'Only partially objected to', '', True),
-#    ('F - Failure to properly sort or categorize documents', 'Failure to properly sort or categorize documents', '', True),
-#    ('F - Failure to aver proper inquiry or to indicate the existence or nonexistence of documents', 'Failure to aver proper inquiry or to indicate the existence or nonexistence of documents', '', True),
-#    ('F - Failure to identify specific grounds for objection of the request with particularity', 'Failure to identify specific grounds for objection of the request with particularity', '', True),
-#    ('F - Assertion of privilege w/o privilege info/log', 'Assertion of privilege w/o privilege info/log', '', True),
-#    ('F - Claimed ambiguity', 'Claimed ambiguity', '', True),
-#    ('F - Insufficient response to partially-correct RFA', 'Insufficient response to partially-correct RFA', '', True),
-#    ('F - Quibble with wording', 'Quibble with wording', '', True),
-#    ('F - Claimed inability to admit or deny without reasonable inquiry', 'Claimed inability to admit or deny without reasonable inquiry', '', True),
-#    ('F - Untailored "ambiguous" objection without elaboration', 'Untailored "ambiguous" objection without elaboration', '', True)
-#  ]
-#---
-#code: |
-#  select_fields = []
-#  # The big, combined one
-#  combined_selected_vals = DADict('combined_selected_vals', gathered=True)
-#  all_combined_vals = []
-#  for col, label, help_link, is_top_level in combined_column_info:
-#    all_vals = [{'value': f'{col};;;{item}', 'label': item, 'group': label} for item in multi_index.get_values(col)]
-#    all_combined_vals.extend(all_vals)
-#  
-#  select_fields.append(
-#        {'label': 'Noncompliant Responses', 'field': f'combined_selected_vals', 
-#         'datatype': 'multiselect',
-#         'required': False, 
-#         'code': 'all_combined_vals',
-#         'help': ""})
-#  # Then the GIC Industry and Practice area
-#  vals_for_columns = {}
-#  selected_vals = {}
-#  for col, label, tooltip, is_top_level in separate_column_info:
-#    vals_for_columns[col] = multi_index.get_values(col)
-#    field_info = {'label': label, 'field': f'selected_vals["{col}"]', 
-#                  'datatype': 'multiselect', 
-#                  'required': False, 'code': f'vals_for_columns["{col}"]'}
-#    if tooltip:
-#      field_info['help'] = tooltip 
-#    select_fields.append(field_info)
+    datatype: multiselect
+    code: formatted_list
+script: |
+  <script type="text/javascript">
+    /* Need to activate the multiselect JavaScript on each input, after base64 encoding the name
+     of the input (it is "example_select" here)
+     */  
+     $(document).ready(function() {
+       $("#${ base64.b64encode(str('example_select').encode()).decode().replace('=', '') } ").multiselect({enableCaseInsensitiveFiltering: true, inheritClass: true, enableClickableOptGroups: true, enableCollapsibleOptGroups: true, collapseOptGroupsByDefault: true});
+      });
+  </script>
+---
+code: |
+  formatted_list = []
+  
+  ### need to create results list
+  ### results = []
+  
+  ### need to load data into results list
+  ### formatted_list is already within methods for loop so
+  ### filter_value=method is sufficient.
+  ### But need to also grab "Label", "Category", and "ID" for 
+  ### each result within the method looping through
+  
+  results = unique_values(dataloader, search_column="Label", filter_column="Method", filter_value=method)
+
+  for result in results:
+    formatted_list.append(
+        {"label": result["Label"],
+         "group": result["Category"],
+         "key": result["ID"]
+         })
 ---
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[disco_attachment], filename="disco.docx", title="All forms to download for your records", enabled=True)
