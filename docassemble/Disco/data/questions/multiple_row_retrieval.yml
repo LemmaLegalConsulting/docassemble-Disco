@@ -8,7 +8,7 @@ objects:
   - objection_categories: DADict.using(object_type=DAObject)
 ---
 objects:
-  #  - objection_categories[i].ncr: NCRDict.using(object_type=DAObject, there_are_any = True)
+  - objection_categories[i].ncr: DADict.using(object_type=DAObject)
   - objection_categories[i].objections: DADict.using(object_type=DAObject)
 ---
 imports:
@@ -70,8 +70,8 @@ fields:
 id: explain noncompliant responses
 question: |
   How was Response **${ j }** noncompliant?
-subquestion: |
-  ${ dataloader._load_data()[dataloader._load_data()["Method"]==(i)].to_html() }
+#subquestion: |
+#  ${ dataloader._load_data()[dataloader._load_data()["Method"]==(i)].to_html() }
 fields:
   - Select: objection_categories[i].objections[j].selected
     datatype: multiselect
