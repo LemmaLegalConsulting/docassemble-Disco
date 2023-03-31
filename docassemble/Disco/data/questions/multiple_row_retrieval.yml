@@ -5,9 +5,11 @@ include:
 ---
 objects:
   - dataloader: DataLoader.using(filename="disco_blurbs.xlsx")
-  - ncr: NCRDict.using(object_type=DAObject, there_are_any = True)
-  - methods: DADict
-  - results: DADict
+  - objection_categories: DADict.using(object_type=DAObject)
+---
+objects:
+  #  - objection_categories[i].ncr: NCRDict.using(object_type=DAObject, there_are_any = True)
+  - objection_categories[i].objections: DADict.using(object_type=DAObject)
 ---
 imports:
   - base64
@@ -21,14 +23,14 @@ code: |
   # gather all methods propounded
   methods
   # for each method, gather all noncompliant responses (ncr)
-  for method in methods:
+  for method in methods.true_values():
     
-    #collect all ncrs
-    for x in ncr:
+    #collect all ncrs per selected method
+    for ncr in objection_categories[method].ncr.true_values():
     
       # for each nrc, show catergory/label dropdown (CLP mimic)
-      select_fields
-
+      objection_categories[method].objections[ncr].selected
+     
   download
 ---
 id: discovery methods
@@ -41,16 +43,16 @@ fields:
       unique_values(dataloader, search_column="Method")
     none of the above: false
 ---
-id: add noncompliant response
-question: |
-  Add another noncompliant response?
-yesno: ncr.there_is_another 
+#id: add noncompliant response
+#question: |
+#  Add another noncompliant response?
+#yesno: ncr.there_is_another 
 ---
 id: noncompliant response number
 question: |
-  Noncompliant response number(s) for ${ method }
+  Noncompliant response number(s) for **${ i }**
 fields: 
-  - no label: ncr
+  - no label: objection_categories[i].ncr
     datatype: checkboxes
     choices: 
       - 1
@@ -65,46 +67,64 @@ fields:
       - 10
     none of the above: false
 ---
-code: |
-  results = unique_values(dataloader, search_column="Label", filter_column="Method", filter_value=method)
----
 id: explain noncompliant responses
 question: |
-  How was Response ${ x } noncompliant?
+  How was Response **${ j }** noncompliant?
+subquestion: |
+  ${ dataloader._load_data()[dataloader._load_data()["Method"]==(i)].to_html() }
 fields:
-  - no label: select_fields
+  - Select: objection_categories[i].objections[j].selected
     datatype: multiselect
-    code: formatted_list
+    code: |
+      [{"label": result["Label"],
+         "group": result["Category"],
+         "key": index
+       }
+       for index, result
+       in dataloader._load_data()[dataloader._load_data()["Method"]==(i)].iterrows()
+      ]
 script: |
   <script type="text/javascript">
     /* Need to activate the multiselect JavaScript on each input, after base64 encoding the name
-     of the input (it is "example_select" here)
+     of the input (it is "objection_categories[i].objections[j].selected" here)
      */  
      $(document).ready(function() {
-       $("#${ base64.b64encode(str('example_select').encode()).decode().replace('=', '') } ").multiselect({enableCaseInsensitiveFiltering: true, inheritClass: true, enableClickableOptGroups: true, enableCollapsibleOptGroups: true, collapseOptGroupsByDefault: true});
+       $("#${ base64.b64encode(str('objection_categories[i].objections[j].selected').encode()).decode().replace('=', '') } ").multiselect({enableCaseInsensitiveFiltering: true, inheritClass: true, enableClickableOptGroups: true, enableCollapsibleOptGroups: true, collapseOptGroupsByDefault: true});
       });
   </script>
 ---
-code: |
-  formatted_list = []
-  
-  ### need to create results list
-  ### results = []
-  
-  ### need to load data into results list
-  ### formatted_list is already within methods for loop so
-  ### filter_value=method is sufficient.
-  ### But need to also grab "Label", "Category", and "ID" for 
-  ### each result within the method looping through
-  
-  results = unique_values(dataloader, search_column="Label", filter_column="Method", filter_value=method)
-
-  for result in results:
-    formatted_list.append(
-        {"label": result["Label"],
-         "group": result["Category"],
-         "key": result["ID"]
-         })
+#code: |
+#  formatted_list = []
+#  
+#  results = []
+#  
+#  ### goal
+#  ### 1. for method in methods (ie interogatory, etc) (looped in 
+#  ### interview order)
+#  ### 2. show in objections the content in Category and Label 
+#  ### that = method
+#  
+#  ### need to load data into results list
+#  ### formatted_list is already within methods for loop so
+#  ### filter_value=method is sufficient.
+#  ### But need to also grab "Label", "Category", and "ID" for 
+#  ### each result within the method looping through
+#  
+#  ## maybe use a version of rows_with_label() and filter row by     ## method and have two display colums ??
+#  
+#  ##results = unique_values(dataloader, search_column="Label", filter_column="Method", filter_value=method)
+#  
+#  ## filter results to current method and load rows
+#  ##current_method_rows = unique_values(dataloader, search_column="Method")
+#  
+#  results = dataloader.load_rows(current_method_rows)
+#
+#  for result in results:
+#    formatted_list.append(
+#        {"label": result["Label"],
+#         "group": result["Category"],
+#         "key": result["ID"]
+#         })
 ---
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[disco_attachment], filename="disco.docx", title="All forms to download for your records", enabled=True)
