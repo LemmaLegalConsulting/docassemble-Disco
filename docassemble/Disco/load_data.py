@@ -12,13 +12,19 @@ import os
 from typing import List, Union, Dict, Iterable, Optional
 from collections import OrderedDict
 
+
+
 __all__ = [
     "DataLoader",
     "NCR",
     "NCRDict",
     "unique_values",
     "rows_with_label",
+    "to_int",
 ]
+
+def to_int(number:str) -> int:
+    return int(number)
 
 class BaseDataLoader(DAObject):
     """
