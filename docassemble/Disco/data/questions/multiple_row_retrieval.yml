@@ -70,7 +70,8 @@ fields:
 id: explain noncompliant responses
 question: |
   How was Response **${ j }** noncompliant?
-#subquestion: |
+subquestion: |
+  ${ list(dataloader._load_data()[dataloader._load_data()["Method"]==(i)].iterrows())[2] }
 #  ${ dataloader._load_data()[dataloader._load_data()["Method"]==(i)].to_html() }
 fields:
   - Select: objection_categories[i].objections[j].selected
@@ -78,7 +79,7 @@ fields:
     code: |
       [{"label": result["Label"],
          "group": result["Category"],
-         "key": index
+         "value": index
        }
        for index, result
        in dataloader._load_data()[dataloader._load_data()["Method"]==(i)].iterrows()
